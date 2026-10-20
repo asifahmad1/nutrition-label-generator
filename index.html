@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nutrition Facts Label Generator — Asif SaaS Studio</title>
+<style>
+  :root{
+    --emerald:#103E32; --emerald-deep:#0B352A; --lime:#DCF5B5; --paper:#F7F8F2;
+    --gold:#C9A227; --ink:#1E2A24; --muted:#5C6B62; --line:#D9E2D2; --error:#B3261E;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:"Segoe UI", system-ui, -apple-system, Arial, sans-serif; background:var(--paper); color:var(--ink); line-height:1.5; font-size:15.5px;}
+  .wrap{max-width:1120px; margin:0 auto; padding:20px 16px 44px;}
+  header{display:flex; align-items:center; gap:14px; background:var(--emerald); border-radius:14px; padding:16px 20px; color:var(--paper);}
+  .mono{flex:0 0 auto; width:52px; height:52px; border:2px solid var(--gold); border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:Georgia, serif; font-size:30px; color:var(--gold);}
+  header h1{font-family:Georgia, serif; font-size:26px; font-weight:700;}
+  header p{font-size:12.5px; color:var(--lime); letter-spacing:1.6px; text-transform:uppercase;}
+  .intro{margin:14px 2px 2px; font-size:15px;}
+  .layout{display:grid; grid-template-columns:1fr 400px; gap:16px; margin-top:16px; align-items:start;}
+  .card{background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:16px; box-shadow:0 2px 10px rgba(16,62,50,.06);}
+  .card h2{font-family:Georgia, serif; font-size:18px; color:var(--emerald); margin-bottom:10px;}
+  label{display:block; font-size:13px; font-weight:700; color:var(--emerald); margin:10px 0 5px;}
+  label:first-of-type{margin-top:0;}
+  select, input[type=text], input[type=number]{width:100%; font-size:15px; padding:9px 11px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--ink);}
+  select:focus, input:focus{outline:3px solid var(--lime); border-color:var(--emerald);}
+  .btn{border-radius:10px; padding:9px 15px; font-size:14.5px; font-weight:700; cursor:pointer; border:1.5px solid var(--emerald); background:#fff; color:var(--emerald);}
+  .btn:hover{background:var(--lime);}
+  .btn.primary{background:var(--emerald); color:var(--lime);}
+  .btn.primary:hover{background:var(--emerald-deep);}
+  .btn.small{padding:6px 11px; font-size:13.5px;}
+  .btnrow{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .err{display:none; margin-top:8px; color:var(--error); font-size:14px; font-weight:600;}
+  .stat{font-size:14px; color:var(--muted); margin-top:8px;}
+  .stat b{color:var(--emerald);}
+  .note{font-size:13px; color:var(--muted); margin-top:10px; border-top:1px solid var(--line); padding-top:10px;}
+  .ingRow{display:grid; grid-template-columns:1fr 92px 36px; gap:8px; margin-top:8px; align-items:center;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  .mini{border:1px solid var(--line); background:#fff; border-radius:8px; width:34px; height:38px; cursor:pointer; font-size:15px;}
+  .mini:hover{border-color:var(--error); color:var(--error);}
+  table.data{width:100%; border-collapse:collapse; font-size:13.5px; margin-top:8px;}
+  table.data th{text-align:right; color:var(--emerald); font-size:12px; padding:3px 5px; border-bottom:1.5px solid var(--line);}
+  table.data th:first-child{text-align:left;}
+  table.data td{padding:3px 5px; border-bottom:1px solid var(--line); text-align:right; font-variant-numeric:tabular-nums;}
+  table.data td:first-child{text-align:left;}
+  .previewCard{position:sticky; top:14px;}
+  /* ------- FDA-style label ------- */
+  .nfl{background:#fff; border:2.5px solid #000; color:#000; padding:10px 12px 12px; font-family:Arial, Helvetica, sans-serif; width:100%; max-width:360px; margin:0 auto;}
+  .nfl .title{font-size:31px; font-weight:900; letter-spacing:-.5px; line-height:1.05; border-bottom:11px solid #000; padding-bottom:3px;}
+  .nfl .serv{font-size:13.5px; line-height:1.35;}
+  .nfl .serv b{font-size:14.5px;}
+  .nfl .ruleT{border-bottom:11px solid #000;}
+  .nfl .ruleM{border-bottom:5px solid #000;}
+  .nfl .ruleS{border-bottom:1px solid #000;}
+  .nfl .row{display:flex; justify-content:space-between; align-items:baseline; font-size:13.5px; padding:2.5px 0;}
+  .nfl .amt{font-size:12.5px; font-weight:700; padding-top:3px;}
+  .nfl .cal{display:flex; justify-content:space-between; align-items:baseline;}
+  .nfl .cal .k{font-size:21px; font-weight:900;}
+  .nfl .cal .v{font-size:33px; font-weight:900; line-height:1;}
+  .nfl .dvh{text-align:right; font-size:12px; font-weight:700;}
+  .nfl .ind1{padding-left:16px;}
+  .nfl .ind2{padding-left:32px;}
+  .nfl .foot{font-size:10.5px; line-height:1.4; padding-top:5px;}
+  footer{margin-top:8px; font-size:13px; color:var(--muted); border-top:1px solid var(--line); padding-top:12px;}
+  @media (max-width:920px){
+    .layout{grid-template-columns:1fr;}
+    .previewCard{position:static;}
+    header h1{font-size:22px;}
+    .grid3{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mono">A</div>
+    <div>
+      <h1>Nutrition Facts Label Generator</h1>
+      <p>Asif SaaS Studio</p>
+    </div>
+  </header>
+
+  <p class="intro">Build a recipe from ingredients, set your serving size, and get a professional US FDA-style Nutrition Facts label — with official Daily Values and FDA rounding rules applied automatically. Export it as a crisp PNG or SVG, or a printable HTML file.</p>
+
+  <div class="layout">
+    <div>
+      <div class="card">
+        <h2>1 · Serving information</h2>
+        <div class="grid2">
+          <div>
+            <label for="servSize">Serving size (as printed)</label>
+            <input type="text" id="servSize" value="1 pack (50 g)">
+          </div>
+          <div>
+            <label for="servPer">Servings per container</label>
+            <input type="number" id="servPer" min="0.1" step="any" value="2">
+          </div>
+        </div>
+        <label class="stat" style="display:flex; gap:8px; align-items:center; font-weight:600;">
+          <input type="checkbox" id="aboutChk" style="width:17px; height:17px; accent-color:var(--emerald);"> Print “about” before the servings count
+        </label>
+        <div class="stat" id="recipeStat"></div>
+      </div>
+
+      <div class="card">
+        <h2>2 · Recipe ingredients</h2>
+        <label for="ingSel">Add an ingredient (values per 100 g, reference database)</label>
+        <div style="display:grid; grid-template-columns:1fr auto; gap:8px;">
+          <select id="ingSel"></select>
+          <button class="btn" id="addIngBtn" type="button">Add</button>
+        </div>
+        <div id="ingRows"></div>
+        <div class="err" id="ingErr"></div>
+        <div class="btnrow">
+          <button class="btn small" id="sampleBtn" type="button">Load sample recipe (trail mix)</button>
+          <button class="btn small" id="clearIngBtn" type="button">Clear recipe</button>
+        </div>
+        <p class="note">Nutrient values are standard reference values (USDA-style) for drafting and education. A commercial product label must be based on laboratory analysis or a verified database for your exact ingredients — see the note under the preview.</p>
+      </div>
+
+      <div class="card">
+        <h2>3 · Add your own ingredient</h2>
+        <label for="ciName">Ingredient name</label>
+        <input type="text" id="ciName" placeholder="e.g. My protein powder">
+        <div class="grid3" id="ciGrid"></div>
+        <div class="btnrow">
+          <button class="btn" id="addCustomBtn" type="button">Add custom ingredient</button>
+        </div>
+        <div class="err" id="ciErr"></div>
+        <div class="stat">Enter values <b>per 100 g</b> from your product's own data sheet. Leave a field empty for 0. Custom ingredients join the dropdown above.</div>
+      </div>
+
+      <div class="card">
+        <h2>4 · Nutrient detail (exact, unrounded)</h2>
+        <div id="dataTable"></div>
+      </div>
+    </div>
+
+    <div class="card previewCard">
+      <h2>Your label</h2>
+      <div id="labelBox"></div>
+      <div class="btnrow">
+        <button class="btn primary" id="pngBtn" type="button">Download PNG</button>
+        <button class="btn" id="svgBtn" type="button">SVG</button>
+        <button class="btn" id="htmlBtn" type="button">Printable HTML</button>
+      </div>
+      <p class="note"><strong>Before commercial use:</strong> US labels must follow 21 CFR 101.9 (format, rounding and nutrient declarations). This generator applies the FDA Daily Values and the standard rounding rules, but your values come from reference data — verify your final product with lab analysis or a certified database, and follow your own country's rules outside the USA.</p>
+    </div>
+  </div>
+
+  <footer>Nutrition Facts Label Generator v1.0 · Asif SaaS Studio, by Dr. Asif Ahmad · Runs entirely in your browser — your recipes never leave your device.</footer>
+</div>
+
+<script>
+/* PURE-CORE-START */
+/* Nutrient field order used everywhere:
+   kcal, fat, satFat, trans(g), chol(mg), sodium(mg), carbs, fiber, sugars, addedSugars, protein,
+   vitD(mcg), calcium(mg), iron(mg), potassium(mg) — all per 100 g. */
+var NUTRIENT_KEYS = ["kcal","fat","satFat","trans","chol","sodium","carbs","fiber","sugars","added","protein","vitD","calcium","iron","potassium"];
+var INGREDIENTS = [
+  ["Whole milk",            [61,3.3,1.9,0.1,10,43,4.8,0,5.0,0,3.2,1.0,113,0.03,132]],
+  ["Skim milk",             [34,0.1,0.06,0,2,42,5.0,0,5.1,0,3.4,1.0,122,0.03,156]],
+  ["Cheddar cheese",        [403,33,19,0.9,105,621,1.3,0,0.5,0,25,0.6,721,0.14,76]],
+  ["Butter",                [717,81,51,3.3,215,11,0.1,0,0.1,0,0.9,1.5,24,0.02,24]],
+  ["Olive oil",             [884,100,13.8,0,0,2,0,0,0,0,0,0,1,0.56,1]],
+  ["Canola oil",            [884,100,7.4,0,0,0,0,0,0,0,0,0,0,0,0]],
+  ["Egg, whole",            [143,9.5,3.1,0,372,142,1.1,0,0.4,0,12.6,2.2,56,1.75,138]],
+  ["Chicken breast, cooked",[165,3.6,1.0,0,85,74,0,0,0,0,31,0.1,15,1.04,256]],
+  ["Ground beef 90%, cooked",[217,10,4.0,0.4,88,72,0,0,0,0,26,0.1,18,2.6,318]],
+  ["Salmon, cooked",        [208,13,3.1,0,55,59,0,0,0,0,20,12.4,9,0.34,363]],
+  ["White rice, cooked",    [130,0.3,0.08,0,0,1,28,0.4,0.05,0,2.7,0,10,0.2,35]],
+  ["Brown rice, cooked",    [112,0.9,0.18,0,0,5,24,1.8,0.4,0,2.6,0,10,0.53,86]],
+  ["White bread",           [265,3.2,0.7,0,0,491,49,2.7,5.0,4.0,9.0,0,115,3.6,115]],
+  ["Whole wheat bread",     [247,3.4,0.7,0,0,399,41,7.0,4.4,4.0,12.9,0,107,2.5,254]],
+  ["Rolled oats",           [389,6.9,1.2,0,0,2,66,10.6,0.3,0,16.9,0,54,4.72,429]],
+  ["All-purpose flour",     [364,1.0,0.16,0,0,2,76,2.7,0.3,0,10.3,0,15,1.2,95]],
+  ["Granulated sugar",      [387,0,0,0,0,1,100,0,99.9,99.9,0,0,1,0.05,2]],
+  ["Honey",                 [304,0,0,0,0,4,82,0.2,82,82,0.3,0,6,0.42,52]],
+  ["Banana",                [89,0.3,0.1,0,0,1,23,2.6,12.2,0,1.1,0,5,0.26,358]],
+  ["Apple",                 [52,0.2,0.03,0,0,1,14,2.4,10.4,0,0.3,0,6,0.12,107]],
+  ["Potato",                [77,0.1,0.03,0,0,6,17,2.2,0.8,0,2.0,0,12,0.81,421]],
+  ["Sweet potato",          [86,0.1,0.02,0,0,55,20,3.0,4.2,0,1.6,0,30,0.61,337]],
+  ["Tomato",                [18,0.2,0.03,0,0,5,3.9,1.2,2.6,0,0.9,0,10,0.27,237]],
+  ["Onion",                 [40,0.1,0.04,0,0,4,9.3,1.7,4.2,0,1.1,0,23,0.21,146]],
+  ["Spinach",               [23,0.4,0.06,0,0,79,3.6,2.2,0.4,0,2.9,0,99,2.71,558]],
+  ["Broccoli",              [34,0.4,0.04,0,0,33,6.6,2.6,1.7,0,2.8,0,47,0.73,316]],
+  ["Carrots",               [41,0.2,0.04,0,0,69,9.6,2.8,4.7,0,0.9,0,33,0.3,320]],
+  ["Almonds",               [579,50,3.8,0,0,1,21.6,12.5,4.4,0,21.2,0,269,3.71,733]],
+  ["Peanut butter",         [588,50,10,0,0,459,20,6.0,9.2,8.0,25.1,0,43,1.9,649]],
+  ["Yogurt, plain",         [61,3.3,2.1,0,13,46,4.7,0,4.7,0,3.5,0.1,121,0.05,155]],
+  ["Greek yogurt, nonfat",  [59,0.4,0.1,0,5,36,3.6,0,3.2,0,10,0,110,0.07,141]],
+  ["Lentils, cooked",       [116,0.4,0.05,0,0,2,20,7.9,1.8,0,9.0,0,19,3.33,369]],
+  ["Black beans, cooked",   [132,0.5,0.14,0,0,1,23.7,8.7,0.3,0,8.9,0,27,2.1,355]],
+  ["Tofu, firm",            [76,4.8,0.7,0,0,7,1.9,0.3,0.3,0,8.1,0,350,2.7,146]],
+  ["Spaghetti, cooked",     [158,0.9,0.18,0,0,1,31,1.8,0.6,0,5.8,0,7,1.3,44]],
+  ["Sweet corn",            [96,1.5,0.2,0,0,15,21,2.4,4.5,0,3.4,0,2,0.52,270]],
+  ["Dates",                 [277,0.2,0,0,0,1,75,6.7,66.5,0,1.8,0,64,0.9,696]],
+  ["Cocoa powder, unsweetened",[228,13.7,8.1,0,0,21,57.9,37,1.8,0,19.6,0,128,13.86,1524]]
+];
+/* FDA Daily Values (2016 label rules, 21 CFR 101.9) */
+var DV = { fat:78, satFat:20, chol:300, sodium:2300, carbs:275, fiber:28, added:50, protein:50, vitD:20, calcium:1300, iron:18, potassium:4700 };
+function dvPct(key, value){
+  if (!DV[key]) return null;
+  var p = value / DV[key] * 100;
+  return Math.round(p);
+}
+/* ------- FDA rounding conventions (simplified to the label rules) ------- */
+function roundTo(x, step){ return Math.round(x / step) * step; }
+function roundCalories(v){
+  if (v < 5) return 0;
+  if (v <= 50) return roundTo(v, 5);
+  return roundTo(v, 10);
+}
+function roundFat(v){ /* total, saturated, trans */
+  if (v < 0.5) return 0;
+  if (v <= 5) return roundTo(v, 0.5);
+  return roundTo(v, 1);
+}
+function roundGram(v){ /* carbs, fiber, sugars, protein */
+  if (v < 0.5) return 0;
+  if (v < 1) return 1;
+  return roundTo(v, 1);
+}
+function roundChol(v){ if (v < 2) return 0; return roundTo(v, 5); }
+function roundSodium(v){
+  if (v <= 5) return 0;
+  if (v <= 140) return roundTo(v, 5);
+  return roundTo(v, 10);
+}
+function roundMicroPct(p){ /* vitamin/mineral %DV declaration tiers */
+  if (p < 2) return p <= 0 ? 0 : 2;
+  if (p <= 10) return roundTo(p, 2);
+  if (p <= 50) return roundTo(p, 5);
+  return roundTo(p, 10);
+}
+function fmtG(v){ /* label grams: whole or .5 */
+  return (Math.round(v * 2) / 2).toString().replace(/\.0$/, "");
+}
+/* ------- Recipe maths -------
+   items: [{values:[15 per-100g numbers], grams}] */
+function computeRecipe(items){
+  var totals = {}, i, k;
+  NUTRIENT_KEYS.forEach(function(key){ totals[key] = 0; });
+  var weight = 0;
+  items.forEach(function(it){
+    var g = Number(it.grams);
+    if (!(g > 0)) return;
+    weight += g;
+    NUTRIENT_KEYS.forEach(function(key, idx){ totals[key] += it.values[idx] * g / 100; });
+  });
+  return { totals: totals, weight: weight };
+}
+function perServing(totals, servings){
+  var out = {};
+  NUTRIENT_KEYS.forEach(function(key){ out[key] = servings > 0 ? totals[key] / servings : 0; });
+  return out;
+}
+function per100g(totals, weight){
+  var out = {};
+  NUTRIENT_KEYS.forEach(function(key){ out[key] = weight > 0 ? totals[key] / weight * 100 : 0; });
+  return out;
+}
+/* ------- Label model (shared by HTML / canvas / SVG renderers) -------
+   Row: {l, lv, r, bold, indent, size, rule} rule: 0 none, 1 thin, 2 medium, 3 thick (rule AFTER the row)
+   Special kinds: title, servings, servingSize, calHead, calValue, dvHead, foot */
+function buildLabelModel(ps, meta){
+  var rows = [];
+  function pct(key, v, micro){
+    var p = dvPct(key, v);
+    if (p === null) return "";
+    if (micro) p = roundMicroPct(p);
+    return p + "%";
+  }
+  rows.push({ kind:"title", text:"Nutrition Facts" });
+  rows.push({ kind:"servings", text:(meta.about ? "about " : "") + meta.servings + " servings per container" });
+  rows.push({ kind:"servingSize", l:"Serving size", r:meta.servingSize, rule:3 });
+  rows.push({ kind:"calHead", text:"Amount per serving", rule:0 });
+  rows.push({ kind:"calValue", l:"Calories", r:String(roundCalories(ps.kcal)), rule:2 });
+  rows.push({ kind:"dvHead", text:"% Daily Value*", rule:1 });
+  rows.push({ l:"Total Fat", lv:fmtG(roundFat(ps.fat)) + "g", r:pct("fat", ps.fat), bold:true, rule:1 });
+  rows.push({ l:"Saturated Fat", lv:fmtG(roundFat(ps.satFat)) + "g", r:pct("satFat", ps.satFat), indent:1, rule:1 });
+  rows.push({ l:"Trans Fat", lv:fmtG(roundFat(ps.trans)) + "g", r:"", indent:1, italic:true, rule:1 });
+  rows.push({ l:"Cholesterol", lv:roundChol(ps.chol) + "mg", r:pct("chol", ps.chol), bold:true, rule:1 });
+  rows.push({ l:"Sodium", lv:roundSodium(ps.sodium) + "mg", r:pct("sodium", ps.sodium), bold:true, rule:1 });
+  rows.push({ l:"Total Carbohydrate", lv:fmtG(roundGram(ps.carbs)) + "g", r:pct("carbs", ps.carbs), bold:true, rule:1 });
+  rows.push({ l:"Dietary Fiber", lv:fmtG(roundGram(ps.fiber)) + "g", r:pct("fiber", ps.fiber), indent:1, rule:1 });
+  rows.push({ l:"Total Sugars", lv:fmtG(roundGram(ps.sugars)) + "g", r:"", indent:1, rule:0 });
+  rows.push({ l:"Includes Added Sugars", lv:fmtG(roundGram(ps.added)) + "g", r:pct("added", ps.added), indent:2, rule:1 });
+  rows.push({ l:"Protein", lv:fmtG(roundGram(ps.protein)) + "g", r:"", bold:true, rule:2 });
+  rows.push({ l:"Vitamin D", lv:(Math.round(ps.vitD * 10) / 10) + "mcg", r:pct("vitD", ps.vitD, true), rule:1 });
+  rows.push({ l:"Calcium", lv:roundTo(ps.calcium, 1) + "mg", r:pct("calcium", ps.calcium, true), rule:1 });
+  rows.push({ l:"Iron", lv:(Math.round(ps.iron * 10) / 10) + "mg", r:pct("iron", ps.iron, true), rule:1 });
+  rows.push({ l:"Potassium", lv:roundTo(ps.potassium, 10) + "mg", r:pct("potassium", ps.potassium, true), rule:0 });
+  rows.push({ kind:"foot", text:"* The % Daily Value (DV) tells you how much a nutrient in a serving of food contributes to a daily diet. 2,000 calories a day is used for general nutrition advice." });
+  return rows;
+}
+/* ------- SVG label from the model ------- */
+var LABEL_W = 340;
+function rowHeight(row){
+  if (row.kind === "title") return 44;
+  if (row.kind === "calValue") return 40;
+  if (row.kind === "foot") return 52;
+  if (row.kind === "servings" || row.kind === "servingSize") return 21;
+  if (row.kind === "calHead") return 17;
+  if (row.kind === "dvHead") return 17;
+  return 20;
+}
+function ruleWidth(rule){ return rule === 3 ? 11 : rule === 2 ? 5 : rule === 1 ? 1 : 0; }
+function labelHeight(rows){
+  var h = 20;
+  rows.forEach(function(r){ h += rowHeight(r) + ruleWidth(r.rule || 0); });
+  return h;
+}
+function svgEsc(s){ return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function buildLabelSVG(rows){
+  var H = labelHeight(rows), parts = [];
+  parts.push('<svg xmlns="http://www.w3.org/2000/svg" width="' + LABEL_W + '" height="' + H + '" viewBox="0 0 ' + LABEL_W + ' ' + H + '">');
+  parts.push('<rect x="1" y="1" width="' + (LABEL_W - 2) + '" height="' + (H - 2) + '" fill="#FFFFFF" stroke="#000000" stroke-width="2.5"/>');
+  var y = 12;
+  function text(x, yy, str, size, weight, anchor, style){
+    parts.push('<text x="' + x + '" y="' + yy + '" font-family="Arial, Helvetica, sans-serif" font-size="' + size + '" font-weight="' + weight + '" text-anchor="' + anchor + '"' + (style ? ' font-style="' + style + '"' : "") + '>' + svgEsc(str) + '</text>');
+  }
+  rows.forEach(function(r){
+    var rh = rowHeight(r);
+    if (r.kind === "title"){ text(10, y + 32, r.text, 31, 900, "start"); }
+    else if (r.kind === "servings"){ text(10, y + 15, r.text, 13.5, 400, "start"); }
+    else if (r.kind === "servingSize"){ text(10, y + 15, r.l, 14.5, 700, "start"); text(LABEL_W - 10, y + 15, r.r, 14.5, 700, "end"); }
+    else if (r.kind === "calHead"){ text(10, y + 13, r.text, 12.5, 700, "start"); }
+    else if (r.kind === "calValue"){ text(10, y + 27, r.l, 21, 900, "start"); text(LABEL_W - 10, y + 33, r.r, 33, 900, "end"); }
+    else if (r.kind === "dvHead"){ text(LABEL_W - 10, y + 13, r.text, 12, 700, "end"); }
+    else if (r.kind === "foot"){
+      var words = r.text.split(" "), lines = [], line = "";
+      words.forEach(function(w){ if ((line + " " + w).length > 62){ lines.push(line); line = w; } else line = line ? line + " " + w : w; });
+      if (line) lines.push(line);
+      lines.forEach(function(ln, i){ text(10, y + 13 + i * 12.5, ln, 10.5, 400, "start"); });
+    } else {
+      var x = 10 + (r.indent === 1 ? 16 : r.indent === 2 ? 32 : 0);
+      var label = r.l + (r.lv ? "  " + r.lv : "");
+      text(x, y + 15, label, 13.5, r.bold ? 700 : 400, "start", r.italic ? "italic" : null);
+      if (r.r) text(LABEL_W - 10, y + 15, r.r, 13.5, 700, "end");
+    }
+    y += rh;
+    var rw = ruleWidth(r.rule || 0);
+    if (rw > 0){ parts.push('<rect x="10" y="' + y + '" width="' + (LABEL_W - 20) + '" height="' + rw + '" fill="#000000"/>'); y += rw; }
+  });
+  parts.push("</svg>");
+  return parts.join("\n");
+}
+/* PURE-CORE-END */
+</script>
+
+<script>
+var $ = function(id){ return document.getElementById(id); };
+var recipe = []; /* {name, values, grams} */
+var customIngs = [];
+var FIELD_LABELS = ["Calories (kcal)","Total fat (g)","Saturated fat (g)","Trans fat (g)","Cholesterol (mg)","Sodium (mg)","Total carbs (g)","Fibre (g)","Total sugars (g)","Added sugars (g)","Protein (g)","Vitamin D (mcg)","Calcium (mg)","Iron (mg)","Potassium (mg)"];
+var DISPLAY_NAMES = { kcal:"Calories", fat:"Total fat", satFat:"Saturated fat", trans:"Trans fat", chol:"Cholesterol", sodium:"Sodium", carbs:"Total carbohydrate", fiber:"Dietary fibre", sugars:"Total sugars", added:"Added sugars", protein:"Protein", vitD:"Vitamin D", calcium:"Calcium", iron:"Iron", potassium:"Potassium" };
+var UNITS = { kcal:"kcal", fat:"g", satFat:"g", trans:"g", chol:"mg", sodium:"mg", carbs:"g", fiber:"g", sugars:"g", added:"g", protein:"g", vitD:"mcg", calcium:"mg", iron:"mg", potassium:"mg" };
+
+function allIngredients(){ return INGREDIENTS.concat(customIngs); }
+function fillIngSelect(){
+  var sel = $("ingSel"), cur = sel.value;
+  sel.innerHTML = allIngredients().map(function(it, i){ return '<option value="' + i + '">' + it[0] + "</option>"; }).join("");
+  if (cur) sel.value = cur;
+}
+function renderRecipe(){
+  var box = $("ingRows");
+  if (!recipe.length){ box.innerHTML = '<div class="stat">No ingredients yet — add some above, or load the sample recipe.</div>'; }
+  else box.innerHTML = recipe.map(function(it, i){
+    return '<div class="ingRow"><div><b>' + it.name + '</b> <span class="stat">(' + it.grams + ' g in recipe)</span></div>' +
+      '<input type="number" min="0" step="any" value="' + it.grams + '" data-i="' + i + '" aria-label="Grams of ' + it.name + '">' +
+      '<button class="mini" data-del="' + i + '" title="Remove" type="button">✕</button></div>';
+  }).join("");
+  box.querySelectorAll("input[data-i]").forEach(function(inp){
+    inp.addEventListener("change", function(){
+      var v = Number(inp.value);
+      recipe[Number(inp.getAttribute("data-i"))].grams = v;
+      refresh();
+    });
+  });
+  box.querySelectorAll("button[data-del]").forEach(function(b){
+    b.addEventListener("click", function(){ recipe.splice(Number(b.getAttribute("data-del")), 1); refresh(); });
+  });
+}
+function currentModel(){
+  var comp = computeRecipe(recipe);
+  var servings = Number($("servPer").value);
+  var ps = perServing(comp.totals, servings);
+  var meta = { servings: $("servPer").value || "1", servingSize: $("servSize").value.trim() || "1 serving", about: $("aboutChk").checked };
+  return { comp: comp, ps: ps, p100: per100g(comp.totals, comp.weight), rows: buildLabelModel(ps, meta), servings: servings };
+}
+function labelHTML(rows){
+  var ruleCls = function(r){ return r === 3 ? "ruleT" : r === 2 ? "ruleM" : r === 1 ? "ruleS" : ""; };
+  var out = ['<div class="nfl">'];
+  rows.forEach(function(r){
+    if (r.kind === "title") out.push('<div class="title">Nutrition Facts</div>');
+    else if (r.kind === "servings") out.push('<div class="serv">' + r.text.replace(/</g, "&lt;") + "</div>");
+    else if (r.kind === "servingSize") out.push('<div class="serv ' + ruleCls(r.rule) + '"><b>Serving size</b> <span style="float:right;"><b>' + r.r.replace(/</g, "&lt;") + "</b></span></div>");
+    else if (r.kind === "calHead") out.push('<div class="amt">Amount per serving</div>');
+    else if (r.kind === "calValue") out.push('<div class="cal ' + ruleCls(r.rule) + '"><span class="k">Calories</span><span class="v">' + r.r + "</span></div>");
+    else if (r.kind === "dvHead") out.push('<div class="dvh ' + ruleCls(r.rule) + '">% Daily Value*</div>');
+    else if (r.kind === "foot") out.push('<div class="foot">' + r.text + "</div>");
+    else {
+      var ind = r.indent === 1 ? " ind1" : r.indent === 2 ? " ind2" : "";
+      var l = (r.bold ? "<b>" + r.l + "</b>" : r.l) + (r.lv ? " " + r.lv : "");
+      if (r.italic) l = "<i>" + r.l + "</i>" + (r.lv ? " " + r.lv : "");
+      out.push('<div class="row ' + ruleCls(r.rule) + ind + '"><span>' + l + '</span><span><b>' + (r.r || "") + "</b></span></div>");
+    }
+  });
+  out.push("</div>");
+  return out.join("\n");
+}
+function refresh(){
+  var err = $("ingErr");
+  var servings = Number($("servPer").value);
+  var badGrams = recipe.some(function(it){ return !(Number(it.grams) > 0); });
+  if (recipe.length && badGrams){ err.textContent = "Every ingredient needs an amount greater than 0 g."; err.style.display = "block"; }
+  else if (!(servings > 0)){ err.textContent = "Servings per container must be greater than 0."; err.style.display = "block"; }
+  else { err.style.display = "none"; }
+  renderRecipe();
+  var m = currentModel();
+  $("recipeStat").innerHTML = recipe.length ? ("Recipe total: <b>" + Math.round(m.comp.weight) + " g</b> · <b>" + recipe.length + "</b> ingredient" + (recipe.length === 1 ? "" : "s") + " · label values are per serving (recipe ÷ " + m.servings + ")") : "";
+  $("labelBox").innerHTML = labelHTML(m.rows);
+  var p100 = m.p100, ps = m.ps;
+  var trows = NUTRIENT_KEYS.map(function(k){
+    var dv = dvPct(k, ps[k]);
+    return "<tr><td>" + DISPLAY_NAMES[k] + "</td><td>" + (Math.round(ps[k] * 100) / 100) + " " + UNITS[k] + "</td><td>" + (Math.round(p100[k] * 100) / 100) + " " + UNITS[k] + "</td><td>" + (dv === null ? "—" : dv + "%") + "</td></tr>";
+  }).join("");
+  $("dataTable").innerHTML = '<table class="data"><thead><tr><th>Nutrient</th><th>Per serving</th><th>Per 100 g</th><th>% DV</th></tr></thead><tbody>' + trows + "</tbody></table>";
+}
+
+/* ---- intake events ---- */
+$("addIngBtn").addEventListener("click", function(){
+  var it = allIngredients()[Number($("ingSel").value)];
+  if (!it) return;
+  recipe.push({ name: it[0], values: it[1].slice(), grams: 100 });
+  refresh();
+});
+$("sampleBtn").addEventListener("click", function(){
+  var byName = {};
+  allIngredients().forEach(function(it){ byName[it[0]] = it[1]; });
+  recipe = [
+    { name:"Almonds", values: byName["Almonds"].slice(), grams:80 },
+    { name:"Dates", values: byName["Dates"].slice(), grams:60 },
+    { name:"Rolled oats", values: byName["Rolled oats"].slice(), grams:60 }
+  ];
+  $("servSize").value = "1 pack (50 g)";
+  $("servPer").value = 4;
+  $("aboutChk").checked = false;
+  refresh();
+});
+$("clearIngBtn").addEventListener("click", function(){ recipe = []; refresh(); });
+["servSize", "servPer"].forEach(function(id){ $(id).addEventListener("input", refresh); });
+$("aboutChk").addEventListener("change", refresh);
+
+/* ---- custom ingredient ---- */
+$("ciGrid").innerHTML = FIELD_LABELS.map(function(l, i){
+  return '<div><label for="ci' + i + '">' + l + '</label><input type="number" id="ci' + i + '" min="0" step="any" placeholder="0"></div>';
+}).join("");
+$("addCustomBtn").addEventListener("click", function(){
+  var err = $("ciErr"), name = $("ciName").value.trim();
+  var vals = [], bad = false, anyVal = false;
+  for (var i = 0; i < 15; i++){
+    var raw = $("ci" + i).value.trim();
+    var v = raw === "" ? 0 : Number(raw);
+    if (isNaN(v) || v < 0) bad = true;
+    if (v > 0) anyVal = true;
+    vals.push(v);
+  }
+  if (!name){ err.textContent = "Give your ingredient a name first."; err.style.display = "block"; return; }
+  if (bad){ err.textContent = "Nutrient values must be numbers of 0 or more."; err.style.display = "block"; return; }
+  if (!anyVal){ err.textContent = "Enter at least one nutrient value (per 100 g)."; err.style.display = "block"; return; }
+  err.style.display = "none";
+  customIngs.push([name + " (custom)", vals]);
+  fillIngSelect();
+  $("ingSel").value = String(allIngredients().length - 1);
+  recipe.push({ name: name + " (custom)", values: vals.slice(), grams: 100 });
+  $("ciName").value = "";
+  for (var j = 0; j < 15; j++) $("ci" + j).value = "";
+  refresh();
+});
+
+/* ---- exports ---- */
+function download(name, blob){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 400);
+}
+function drawLabelCanvas(rows, scale){
+  var H = labelHeight(rows);
+  var cv = document.createElement("canvas");
+  cv.width = LABEL_W * scale; cv.height = H * scale;
+  var c = cv.getContext("2d");
+  c.scale(scale, scale);
+  c.fillStyle = "#FFFFFF"; c.fillRect(0, 0, LABEL_W, H);
+  c.strokeStyle = "#000000"; c.lineWidth = 2.5; c.strokeRect(1.25, 1.25, LABEL_W - 2.5, H - 2.5);
+  c.fillStyle = "#000000"; c.textBaseline = "alphabetic";
+  var y = 12;
+  function text(x, yy, str, font, align){ c.font = font; c.textAlign = align || "left"; c.fillText(str, x, yy); }
+  rows.forEach(function(r){
+    var rh = rowHeight(r);
+    if (r.kind === "title") text(10, y + 32, r.text, "900 31px Arial, Helvetica, sans-serif");
+    else if (r.kind === "servings") text(10, y + 15, r.text, "13.5px Arial, Helvetica, sans-serif");
+    else if (r.kind === "servingSize"){ text(10, y + 15, r.l, "700 14.5px Arial, Helvetica, sans-serif"); text(LABEL_W - 10, y + 15, r.r, "700 14.5px Arial, Helvetica, sans-serif", "right"); }
+    else if (r.kind === "calHead") text(10, y + 13, r.text, "700 12.5px Arial, Helvetica, sans-serif");
+    else if (r.kind === "calValue"){ text(10, y + 27, r.l, "900 21px Arial, Helvetica, sans-serif"); text(LABEL_W - 10, y + 33, r.r, "900 33px Arial, Helvetica, sans-serif", "right"); }
+    else if (r.kind === "dvHead") text(LABEL_W - 10, y + 13, r.text, "700 12px Arial, Helvetica, sans-serif", "right");
+    else if (r.kind === "foot"){
+      var words = r.text.split(" "), lines = [], line = "";
+      words.forEach(function(w){ if ((line + " " + w).length > 62){ lines.push(line); line = w; } else line = line ? line + " " + w : w; });
+      if (line) lines.push(line);
+      lines.forEach(function(ln, i){ text(10, y + 13 + i * 12.5, ln, "10.5px Arial, Helvetica, sans-serif"); });
+    } else {
+      var x = 10 + (r.indent === 1 ? 16 : r.indent === 2 ? 32 : 0);
+      var font = (r.bold ? "700 " : "") + (r.italic ? "italic " : "") + "13.5px Arial, Helvetica, sans-serif";
+      text(x, y + 15, r.l + (r.lv ? "  " + r.lv : ""), font);
+      if (r.r) text(LABEL_W - 10, y + 15, r.r, "700 13.5px Arial, Helvetica, sans-serif", "right");
+    }
+    y += rh;
+    var rw = ruleWidth(r.rule || 0);
+    if (rw > 0){ c.fillRect(10, y, LABEL_W - 20, rw); y += rw; }
+  });
+  return cv;
+}
+$("pngBtn").addEventListener("click", function(){
+  var m = currentModel();
+  drawLabelCanvas(m.rows, 3).toBlob(function(b){ if (b) download("nutrition-label.png", b); }, "image/png");
+});
+$("svgBtn").addEventListener("click", function(){
+  var m = currentModel();
+  download("nutrition-label.svg", new Blob([buildLabelSVG(m.rows)], { type:"image/svg+xml" }));
+});
+$("htmlBtn").addEventListener("click", function(){
+  var m = currentModel();
+  var css = ".nfl{background:#fff;border:2.5px solid #000;color:#000;padding:10px 12px 12px;font-family:Arial,Helvetica,sans-serif;width:360px;margin:24px auto;}.nfl .title{font-size:31px;font-weight:900;line-height:1.05;border-bottom:11px solid #000;padding-bottom:3px;}.nfl .serv{font-size:13.5px;line-height:1.35;}.nfl .ruleT{border-bottom:11px solid #000;}.nfl .ruleM{border-bottom:5px solid #000;}.nfl .ruleS{border-bottom:1px solid #000;}.nfl .row{display:flex;justify-content:space-between;font-size:13.5px;padding:2.5px 0;}.nfl .amt{font-size:12.5px;font-weight:700;padding-top:3px;}.nfl .cal{display:flex;justify-content:space-between;align-items:baseline;}.nfl .cal .k{font-size:21px;font-weight:900;}.nfl .cal .v{font-size:33px;font-weight:900;line-height:1;}.nfl .dvh{text-align:right;font-size:12px;font-weight:700;}.nfl .ind1{padding-left:16px;}.nfl .ind2{padding-left:32px;}.nfl .foot{font-size:10.5px;line-height:1.4;padding-top:5px;}";
+  var doc = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Nutrition Facts Label</title><style>" + css + "</style></head><body>" + labelHTML(m.rows) + "</body></html>";
+  download("nutrition-label.html", new Blob([doc], { type:"text/html" }));
+});
+
+/* ---- init ---- */
+fillIngSelect();
+$("sampleBtn").click();
+</script>
+</body>
+</html>
